@@ -22,6 +22,8 @@ class Base64ImageField(serializers.ImageField):
 
 class PostSerializer(serializers.ModelSerializer):
     image = Base64ImageField(required=False, allow_null=True)
+    # эта штука (ниже) говорит что пользователь будет создавать всё от своего лица и автора указывать не нужно
+    author = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault()) 
 
     class Meta:
         model = Post
@@ -46,6 +48,11 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class FollowSerialozer(serializers.ModelSerializer):
+    following = serializers.SlugRelatedField(
+        slug_field='username', queryset=User.objects.all())     # обеспечивает запись не id а значение поля
+    # обеспечивает запись не id а значение поля и позволило создавать подписку без usera в теле поста
+    user = serializers.SlugRelatedField(slug_field='username', read_only=True,
+                                        default=serializers.CurrentUserDefault())
 
     class Meta:
         model = Follow

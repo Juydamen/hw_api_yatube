@@ -3,24 +3,40 @@ from posts.models import Post, Group, Comment, User, Follow
 from api.serializers import PostSerializer, GroupSerializer, CommentSerializer, CustomUserSerializer, FollowSerialozer
 from .permissions import AuthorOrReadOnly, ReadOnly
 from django.shortcuts import get_object_or_404
-# from api.pagination import PostPagination
+from rest_framework.pagination import LimitOffsetPagination
 
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = (AuthorOrReadOnly,)
+    pagination_class = LimitOffsetPagination
+
+    def get_permissions(self):      # Если в GET-запросе требуется получить информацию об объекте
+        if self.action == 'retrieve':
+            return (ReadOnly(),)
+        return super().get_permissions()
+
+    def perform_create(self, serializer):       # эта штука позволила постить посты без автора хотя в get он высвечивается
+        serializer.save(author=self.request.user)
 
 
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+    pagination_class = None
+
+    def get_permissions(self):      # Если в GET-запросе требуется получить информацию об объекте
+        if self.action == 'retrieve':
+            return (ReadOnly(),)
+        return super().get_permissions()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = (AuthorOrReadOnly,)
+    pagination_class = None
 
     def get_permissions(self):      # Если в GET-запросе требуется получить информацию об объекте
         if self.action == 'retrieve':
@@ -41,18 +57,21 @@ class CommentViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
+    pagination_class = None
 
 
 class FollowViewSet(viewsets.ModelViewSet):
     queryset = Follow.objects.all()
     serializer_class = FollowSerialozer
+    pagination_class = None
 
-    def get_folow(self):
-        follow_id = self.kwargs.get('follow_id')
-        return get_object_or_404(Follow, pk=follow_id)
+    def get_permissions(self):      # Если в GET-запросе требуется получить информацию об объекте
+        if self.action == 'retrieve':
+            return (ReadOnly(),)
+        return super().get_permissions()
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user, post=self.get_post())
+    def perform_create(self, serializer):       # эта штука позволила постить посты без автора хотя в get он высвечивается
+        serializer.save(user=self.request.user)
 
 
 
