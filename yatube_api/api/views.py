@@ -1,8 +1,9 @@
 from rest_framework import viewsets
-from posts.models import Post, Group, Comment, User
-from api.serializers import PostSerializer, GroupSerializer, CommentSerializer, CustomUserSerializer
+from posts.models import Post, Group, Comment, User, Follow
+from api.serializers import PostSerializer, GroupSerializer, CommentSerializer, CustomUserSerializer, FollowSerialozer
 from .permissions import AuthorOrReadOnly, ReadOnly
 from django.shortcuts import get_object_or_404
+# from api.pagination import PostPagination
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -21,7 +22,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (AuthorOrReadOnly,)
 
-    def get_permissions(self):
+    def get_permissions(self):      # Если в GET-запросе требуется получить информацию об объекте
         if self.action == 'retrieve':
             return (ReadOnly(),)
         return super().get_permissions()
@@ -42,9 +43,16 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = CustomUserSerializer
 
 
-# class FollowViewSet(viewsets.ModelViewSet):
-#     queryset = Follow.objects.all()
-#     serializer_class = CommentSerializer
+class FollowViewSet(viewsets.ModelViewSet):
+    queryset = Follow.objects.all()
+    serializer_class = FollowSerialozer
+
+    def get_folow(self):
+        follow_id = self.kwargs.get('follow_id')
+        return get_object_or_404(Follow, pk=follow_id)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user, post=self.get_post())
 
 
 

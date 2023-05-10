@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from posts.models import Post, Group, Comment, User
+from posts.models import Post, Group, Comment, User, Follow
 import base64
 from django.core.files.base import ContentFile
 from djoser.serializers import UserSerializer
@@ -45,6 +45,11 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only_fields = ('post',)
 
 
+class FollowSerialozer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Follow
+        fields = ('user', 'following')
 
 
 
